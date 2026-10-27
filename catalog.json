@@ -7,10 +7,10 @@
       "publication": {
         "github": {
           "branch": "main",
-          "commit": "",
+          "commit": "763e78efb7a5a4583632640a5b9c4315aa4fcbae",
           "download_url": "https://raw.githubusercontent.com/faizanalii/free-n8n-templates/main/templates/turo-availability-calendar/workflow.json",
           "repository": "faizanalii/free-n8n-templates",
-          "status": "prepared",
+          "status": "publicly_verified",
           "url": "https://github.com/faizanalii/free-n8n-templates/tree/main/templates/turo-availability-calendar"
         },
         "website": {
@@ -28,10 +28,10 @@
       "publication": {
         "github": {
           "branch": "main",
-          "commit": "",
+          "commit": "763e78efb7a5a4583632640a5b9c4315aa4fcbae",
           "download_url": "https://raw.githubusercontent.com/faizanalii/free-n8n-templates/main/templates/turo-cars-to-data-table/workflow.json",
           "repository": "faizanalii/free-n8n-templates",
-          "status": "prepared",
+          "status": "publicly_verified",
           "url": "https://github.com/faizanalii/free-n8n-templates/tree/main/templates/turo-cars-to-data-table"
         },
         "website": {
@@ -49,10 +49,10 @@
       "publication": {
         "github": {
           "branch": "main",
-          "commit": "",
+          "commit": "763e78efb7a5a4583632640a5b9c4315aa4fcbae",
           "download_url": "https://raw.githubusercontent.com/faizanalii/free-n8n-templates/main/templates/turo-trip-price-monitor/workflow.json",
           "repository": "faizanalii/free-n8n-templates",
-          "status": "prepared",
+          "status": "publicly_verified",
           "url": "https://github.com/faizanalii/free-n8n-templates/tree/main/templates/turo-trip-price-monitor"
         },
         "website": {

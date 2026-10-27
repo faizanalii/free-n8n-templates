@@ -91,10 +91,10 @@
   "updated_at": "2026-10-27",
   "publication": {
     "github": {
-      "status": "prepared",
+      "status": "publicly_verified",
       "repository": "faizanalii/free-n8n-templates",
       "branch": "main",
-      "commit": "",
+      "commit": "763e78efb7a5a4583632640a5b9c4315aa4fcbae",
       "url": "https://github.com/faizanalii/free-n8n-templates/tree/main/templates/turo-availability-calendar",
       "download_url": "https://raw.githubusercontent.com/faizanalii/free-n8n-templates/main/templates/turo-availability-calendar/workflow.json"
     },
