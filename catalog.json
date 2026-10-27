@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "templates": [
+    {
+      "actor_url": "https://apify.com/datascrapers/turo-car-scraper",
+      "path": "templates/turo-availability-calendar",
+      "publication": {
+        "github": {
+          "branch": "main",
+          "commit": "",
+          "download_url": "https://raw.githubusercontent.com/faizanalii/free-n8n-templates/main/templates/turo-availability-calendar/workflow.json",
+          "repository": "faizanalii/free-n8n-templates",
+          "status": "prepared",
+          "url": "https://github.com/faizanalii/free-n8n-templates/tree/main/templates/turo-availability-calendar"
+        },
+        "website": {
+          "status": "not_configured",
+          "url": ""
+        }
+      },
+      "slug": "turo-availability-calendar",
+      "title": "Save Turo calendar days for a trip search",
+      "validation": "passed"
+    },
+    {
+      "actor_url": "https://apify.com/datascrapers/turo-car-scraper",
+      "path": "templates/turo-cars-to-data-table",
+      "publication": {
+        "github": {
+          "branch": "main",
+          "commit": "",
+          "download_url": "https://raw.githubusercontent.com/faizanalii/free-n8n-templates/main/templates/turo-cars-to-data-table/workflow.json",
+          "repository": "faizanalii/free-n8n-templates",
+          "status": "prepared",
+          "url": "https://github.com/faizanalii/free-n8n-templates/tree/main/templates/turo-cars-to-data-table"
+        },
+        "website": {
+          "status": "not_configured",
+          "url": ""
+        }
+      },
+      "slug": "turo-cars-to-data-table",
+      "title": "Save a Turo car search to an n8n data table",
+      "validation": "passed"
+    },
+    {
+      "actor_url": "https://apify.com/datascrapers/turo-car-scraper",
+      "path": "templates/turo-trip-price-monitor",
+      "publication": {
+        "github": {
+          "branch": "main",
+          "commit": "",
+          "download_url": "https://raw.githubusercontent.com/faizanalii/free-n8n-templates/main/templates/turo-trip-price-monitor/workflow.json",
+          "repository": "faizanalii/free-n8n-templates",
+          "status": "prepared",
+          "url": "https://github.com/faizanalii/free-n8n-templates/tree/main/templates/turo-trip-price-monitor"
+        },
+        "website": {
+          "status": "not_configured",
+          "url": ""
+        }
+      },
+      "slug": "turo-trip-price-monitor",
+      "title": "Monitor Turo prices for the same trip",
+      "validation": "passed"
+    }
+  ]
+}

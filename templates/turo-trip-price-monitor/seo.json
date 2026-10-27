@@ -1,0 +1,17 @@
+{
+  "primary_intent": "Alert when the same Turo trip price changes",
+  "title": "Monitor Turo prices for the same trip",
+  "description": "Free n8n workflow that stores a baseline for one Turo search and alerts when the average daily price or trip total changes.",
+  "related_phrases": [
+    "Turo price monitoring",
+    "compare Turo daily rates",
+    "Turo trip total change"
+  ],
+  "evidence": [
+    {
+      "url": "https://apify.com/automation-lab/turo-vehicle-listings-price-scraper",
+      "date": "2026-10-27",
+      "note": "Describes a repeated search keyed by listing and trip dates, with alerts for meaningful price changes."
+    }
+  ]
+}

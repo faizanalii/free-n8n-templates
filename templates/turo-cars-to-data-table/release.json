@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "release_id": "felP4YIbN07tbwFJN-turo-cars-to-data-table",
+  "slug": "turo-cars-to-data-table",
+  "title": "Save a Turo car search to an n8n data table",
+  "actor": {
+    "id": "felP4YIbN07tbwFJN",
+    "owner_id": "XQ4b5NlpHfNjEMtso",
+    "username": "datascrapers",
+    "name": "turo-car-scraper",
+    "url": "https://apify.com/datascrapers/turo-car-scraper",
+    "public_verified_at": "2026-10-27",
+    "pricing_verified_at": "2026-10-27",
+    "pricing_summary": "Pay per event. On 2026-10-27 the active schedule started 2026-10-15. FREE-plan prices: actor start $0.00005 per GB (minimum one), car $0.0015, availability $0.0009. Details, host, and review events stay off in these templates. A replacement schedule starts 2026-10-31.",
+    "build": "1.0.6"
+  },
+  "workflow": {
+    "file": "workflow.json",
+    "sha256": "9b3e77a560ec4c00e1679453ea4cc5c80801896dd903d6ef695a8ffbb00a5623",
+    "n8n_version": "2.1.4"
+  },
+  "validation": {
+    "status": "passed",
+    "tested_at": "2026-10-27",
+    "evidence_summary": "Imported from the portable workflow into n8n 2.1.4. Fixture tests covered invalid input, empty results, failed, aborted, timed-out, rejected and ambiguous starts, polling, and 12-row pagination. A second import repeated the 12-row result. A live San Francisco run with maxItems 2 stored 2 cars and reported usageTotalUsd 0.00393.",
+    "cases": [
+      {
+        "name": "invalid-settings",
+        "mode": "fixture",
+        "result": "success, no actor start, invalid location reported"
+      },
+      {
+        "name": "empty-dataset",
+        "mode": "fixture",
+        "result": "success, empty summary, no rows inserted"
+      },
+      {
+        "name": "failed-run",
+        "mode": "fixture",
+        "result": "success branch to Run failed"
+      },
+      {
+        "name": "aborted-run",
+        "mode": "fixture",
+        "result": "success branch to Run aborted"
+      },
+      {
+        "name": "timed-out-run",
+        "mode": "fixture",
+        "result": "success branch to Run timed out"
+      },
+      {
+        "name": "rejected-start",
+        "mode": "fixture",
+        "result": "HTTP 500 without a run id, one start attempt"
+      },
+      {
+        "name": "ambiguous-start",
+        "mode": "fixture",
+        "result": "connection refused on the start node error output, one attempt"
+      },
+      {
+        "name": "poll-loop",
+        "mode": "fixture",
+        "result": "two RUNNING responses then SUCCEEDED"
+      },
+      {
+        "name": "pagination",
+        "mode": "fixture",
+        "result": "12 cars across two pages of 10, 12 rows stored"
+      },
+      {
+        "name": "portable-reimport",
+        "mode": "fixture",
+        "result": "fresh import of workflow.json stored 12 paged rows"
+      },
+      {
+        "name": "live-two-cars",
+        "mode": "live",
+        "result": "San Francisco, maxItems 2, 2 rows, usageTotalUsd 0.00393"
+      }
+    ],
+    "portable_reimport_passed": true
+  },
+  "created_at": "2026-10-27",
+  "updated_at": "2026-10-27",
+  "publication": {
+    "github": {
+      "status": "prepared",
+      "repository": "faizanalii/free-n8n-templates",
+      "branch": "main",
+      "commit": "",
+      "url": "https://github.com/faizanalii/free-n8n-templates/tree/main/templates/turo-cars-to-data-table",
+      "download_url": "https://raw.githubusercontent.com/faizanalii/free-n8n-templates/main/templates/turo-cars-to-data-table/workflow.json"
+    },
+    "website": {
+      "status": "not_configured",
+      "url": ""
+    }
+  }
+}

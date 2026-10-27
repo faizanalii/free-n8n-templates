@@ -1,0 +1,22 @@
+flowchart TD
+  manual[Manual trigger] --> settings[Trip settings]
+  schedule[Daily schedule disabled] --> settings
+  settings --> validate[Validate settings]
+  validate --> valid{Settings valid}
+  valid -->|no| invalid[Invalid settings]
+  valid -->|yes| start[Start actor run]
+  start -->|request error| ambiguous[Ambiguous start]
+  start --> accepted{Run accepted}
+  accepted -->|no| rejected[Start rejected]
+  accepted -->|yes| poll[Poll run]
+  poll --> route{Run status}
+  route -->|still running| poll
+  route -->|failed aborted or timed out| terminal[Terminal summary]
+  route -->|poll limit| deadline[Poll deadline]
+  route -->|succeeded| pages[Read every dataset page]
+  pages -->|more rows| pages
+  pages -->|no cars| empty[Run summary]
+  pages -->|cars| stored[Get stored prices]
+  stored --> compare[Compare prices]
+  compare --> upsert[Upsert observations]
+  compare --> alerts[Price alerts]

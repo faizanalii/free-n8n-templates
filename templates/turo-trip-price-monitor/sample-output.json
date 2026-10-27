@@ -1,0 +1,13 @@
+{
+  "synthetic": true,
+  "note": "Synthetic price-change alert. The first run of a search is a baseline and is not an alert.",
+  "changeType": "price_change",
+  "vehicleId": "501",
+  "avgDailyPrice": 55,
+  "previousAvgDailyPrice": 40,
+  "totalTripPrice": null,
+  "previousTotalTripPrice": null,
+  "currency": "USD",
+  "tripStart": "2026-12-01T10:00",
+  "tripEnd": "2026-12-05T10:00"
+}

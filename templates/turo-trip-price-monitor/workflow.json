@@ -1,0 +1,1406 @@
+{
+  "name": "Monitor Turo trip prices",
+  "nodes": [
+    {
+      "id": "bb20-0001-4000-8000-000000000000",
+      "name": "When clicking Execute",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        300
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "bb20-0002-4000-8000-000000000000",
+      "name": "Daily schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        560
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 8,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "disabled": true
+    },
+    {
+      "id": "bb20-0003-4000-8000-000000000000",
+      "name": "Trip settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        280,
+        300
+      ],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "location",
+              "name": "location",
+              "value": "Los Angeles, CA, USA",
+              "type": "string"
+            },
+            {
+              "id": "startDate",
+              "name": "startDate",
+              "value": "2026-12-01",
+              "type": "string"
+            },
+            {
+              "id": "endDate",
+              "name": "endDate",
+              "value": "2026-12-05",
+              "type": "string"
+            },
+            {
+              "id": "startTime",
+              "name": "startTime",
+              "value": "10:00",
+              "type": "string"
+            },
+            {
+              "id": "endTime",
+              "name": "endTime",
+              "value": "10:00",
+              "type": "string"
+            },
+            {
+              "id": "driverAge",
+              "name": "driverAge",
+              "value": 30,
+              "type": "number"
+            },
+            {
+              "id": "country",
+              "name": "country",
+              "value": "US",
+              "type": "string"
+            },
+            {
+              "id": "maxItems",
+              "name": "maxItems",
+              "value": 10,
+              "type": "number"
+            },
+            {
+              "id": "itemCeiling",
+              "name": "itemCeiling",
+              "value": 50,
+              "type": "number"
+            },
+            {
+              "id": "dataTableId",
+              "name": "dataTableId",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "baseUrl",
+              "name": "baseUrl",
+              "value": "https://api.apify.com/v2",
+              "type": "string"
+            },
+            {
+              "id": "mode",
+              "name": "mode",
+              "value": "search",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      }
+    },
+    {
+      "id": "bb20-0040-4000-8000-000000000000",
+      "name": "Read me",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "content": "## Before you run\nCreate a Header Auth credential named Authorization with value Bearer and your Apify token. Select it on every HTTP Request node.\n\nCreate the data table columns listed in the README, then paste that table ID into Trip settings. Leave the schedule disabled until a small manual run looks right.\n\nThe template is free. The actor charges per saved record.",
+        "width": 460,
+        "height": 280
+      }
+    },
+    {
+      "id": "bb20-0004-4000-8000-000000000000",
+      "name": "Validate settings",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nconst errors = [];\nfunction text(value) {\n  return value === null || value === undefined ? '' : String(value).trim();\n}\nconst location = text(item.location);\nconst startDate = text(item.startDate);\nconst endDate = text(item.endDate);\nconst startTime = text(item.startTime || '10:00');\nconst endTime = text(item.endTime || '10:00');\nconst country = text(item.country || 'US') || 'US';\nconst dataTableId = text(item.dataTableId);\nconst baseUrl = text(item.baseUrl || 'https://api.apify.com/v2').replace(/\\/+$/, '');\nconst driverAge = Number(item.driverAge);\nconst maxItems = Number(item.maxItems);\nconst maxAvailabilityDays = Number(item.maxAvailabilityDays);\nconst mode = text(item.mode);\nconst dateRe = /^\\d{4}-\\d{2}-\\d{2}$/;\nconst timeRe = /^(\\d{2}):(\\d{2})$/;\nfunction validDate(value) {\n  if (!dateRe.test(value)) return false;\n  const parsed = new Date(value + 'T00:00:00Z');\n  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;\n}\nfunction validTime(value) {\n  const match = timeRe.exec(value);\n  if (!match) return false;\n  const hour = Number(match[1]);\n  const minute = Number(match[2]);\n  return hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59;\n}\nif (!location) errors.push('Enter a location such as Los Angeles, CA, USA.');\nif (!validDate(startDate)) errors.push('startDate must be YYYY-MM-DD.');\nif (!validDate(endDate)) errors.push('endDate must be YYYY-MM-DD.');\nif (validDate(startDate) && validDate(endDate) && endDate < startDate) errors.push('endDate must be on or after startDate.');\nif (!validTime(startTime)) errors.push('startTime must be HH:MM in 24-hour time.');\nif (!validTime(endTime)) errors.push('endTime must be HH:MM in 24-hour time.');\nif (!Number.isInteger(driverAge) || driverAge < 18 || driverAge > 100) errors.push('driverAge must be a whole number from 18 to 100.');\nif (!Number.isInteger(maxItems) || maxItems < 1) errors.push('maxItems must be a whole number of at least 1. This template does not send 0, because 0 removes the actor cap.');\nif (maxItems > item.itemCeiling) errors.push('maxItems is above this template ceiling of ' + item.itemCeiling + '. Raise itemCeiling in Trip settings only after checking the actor price.');\nif (mode === 'availability') {\n  if (!Number.isInteger(maxAvailabilityDays) || maxAvailabilityDays < 1 || maxAvailabilityDays > 31) {\n    errors.push('maxAvailabilityDays must be a whole number from 1 to 31.');\n  }\n}\nif (!dataTableId) errors.push('Enter the n8n data table ID. Create the table and columns before running.');\nif (!/^https?:\\/\\/[^/\\s]+/.test(baseUrl)) errors.push('baseUrl must start with http:// or https:// and must not contain a token.');\nif (/token=|apify_api_/i.test(baseUrl)) errors.push('Do not put an API token in baseUrl. Use Header Auth.');\nconst actorInput = {\n  locations: [location],\n  startDate,\n  endDate,\n  startTime,\n  endTime,\n  driverAge,\n  country,\n  maxItems,\n  includeCarDetails: false,\n  includeCarReviews: false,\n  includeHost: false,\n  includeHostReviews: false,\n  includeAvailability: mode === 'availability',\n};\nif (mode === 'availability') actorInput.maxAvailabilityDays = maxAvailabilityDays;\nreturn [{\n  json: {\n    decision: errors.length ? 'invalid' : 'valid',\n    errors,\n    actorInput,\n    baseUrl,\n    dataTableId,\n    location,\n    startDate,\n    endDate,\n    startTime,\n    endTime,\n    driverAge: String(driverAge),\n    mode,\n    pageSize: 10,\n    maxPolls: 60,\n    pollWaitSeconds: 10,\n    maxPages: 20,\n  },\n}];\n"
+      }
+    },
+    {
+      "id": "bb20-0005-4000-8000-000000000000",
+      "name": "Settings valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        820,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cond-valid",
+              "leftValue": "={{ $json.decision }}",
+              "rightValue": "valid",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "bb20-0006-4000-8000-000000000000",
+      "name": "Invalid settings",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        520
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nreturn [{ json: { result: 'invalid_settings', message: 'Fix the Trip settings before a run is started.', errors: item.errors || [] } }];\n"
+      }
+    },
+    {
+      "id": "bb20-0007-4000-8000-000000000000",
+      "name": "Start actor run",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1100,
+        220
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.baseUrl }}/acts/datascrapers~turo-car-scraper/runs",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.actorInput) }}"
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": false
+    },
+    {
+      "id": "bb20-0008-4000-8000-000000000000",
+      "name": "Read start response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1380,
+        220
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const http = $input.first().json;\nlet body = http.body;\nif (typeof body === 'string') {\n  try { body = JSON.parse(body); } catch (error) { body = {}; }\n}\nif (!body || typeof body !== 'object') body = {};\nconst data = body.data && typeof body.data === 'object' ? body.data : body;\nconst runId = data && data.id ? String(data.id) : '';\nconst statusCode = Number(http.statusCode || 0);\nconst state = $('Validate settings').first().json;\nconst accepted = Boolean(runId) && (statusCode === 0 || (statusCode >= 200 && statusCode < 300));\nlet message = 'Actor run did not return a run id. Do not start another run until you check Apify for a run created at this time.';\nif (body.error && body.error.message) message = String(body.error.message).slice(0, 500);\nreturn [{\n  json: {\n    decision: accepted ? 'accepted' : 'rejected',\n    runId,\n    datasetId: data && data.defaultDatasetId ? String(data.defaultDatasetId) : '',\n    statusCode,\n    message,\n    baseUrl: state.baseUrl,\n    dataTableId: state.dataTableId,\n    actorInput: state.actorInput,\n    location: state.location,\n    startDate: state.startDate,\n    endDate: state.endDate,\n    driverAge: state.driverAge,\n    pageSize: state.pageSize,\n    maxPolls: state.maxPolls,\n    pollWaitSeconds: state.pollWaitSeconds,\n    maxPages: state.maxPages,\n    mode: state.mode,\n    pollCount: 0,\n    cars: [],\n    fetched: 0,\n    blockedInTrip: 0,\n    openInTrip: 0,\n    calendarDays: 0,\n  },\n}];\n"
+      }
+    },
+    {
+      "id": "bb20-0009-4000-8000-000000000000",
+      "name": "Ambiguous start",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1380,
+        460
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "return [{ json: { result: 'ambiguous_start', message: 'The start request failed in n8n before a run id was saved. A run may still have been created. Check Apify before starting again. This workflow does not retry the start.' } }];\n"
+      }
+    },
+    {
+      "id": "bb20-0010-4000-8000-000000000000",
+      "name": "Run accepted?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1660,
+        220
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cond-accepted",
+              "leftValue": "={{ $json.decision }}",
+              "rightValue": "accepted",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "bb20-0011-4000-8000-000000000000",
+      "name": "Start rejected",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        460
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nreturn [{ json: { result: 'start_rejected', message: item.message, statusCode: item.statusCode || null } }];\n"
+      }
+    },
+    {
+      "id": "bb20-0012-4000-8000-000000000000",
+      "name": "Prepare poll",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        180
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nconst pollCount = Number.isInteger(item.pollCount) ? item.pollCount : 0;\nreturn [{ json: { ...item, pollCount } }];\n"
+      }
+    },
+    {
+      "id": "bb20-0013-4000-8000-000000000000",
+      "name": "Wait for run",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2160,
+        180
+      ],
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": "={{ $json.pollWaitSeconds }}",
+        "unit": "seconds"
+      }
+    },
+    {
+      "id": "bb20-0014-4000-8000-000000000000",
+      "name": "Get run",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2400,
+        180
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.baseUrl + '/actor-runs/' + $json.runId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
+    },
+    {
+      "id": "bb20-0015-4000-8000-000000000000",
+      "name": "Read run status",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2660,
+        180
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const http = $input.first().json;\nconst state = $('Wait for run').item.json;\nlet body = http.body;\nif (typeof body === 'string') {\n  try { body = JSON.parse(body); } catch (error) { body = {}; }\n}\nif (!body || typeof body !== 'object') body = {};\nconst data = body.data && typeof body.data === 'object' ? body.data : {};\nconst status = data.status ? String(data.status) : '';\nconst pollCount = Number(state.pollCount || 0) + 1;\nconst terminal = {\n  SUCCEEDED: 'succeeded',\n  FAILED: 'failed',\n  ABORTED: 'aborted',\n  'TIMED-OUT': 'timed_out',\n};\nlet decision = terminal[status] || 'keep_polling';\nif (!status) decision = 'poll_error';\nif (decision === 'keep_polling' && pollCount >= Number(state.maxPolls)) decision = 'poll_deadline';\nconst datasetId = data.defaultDatasetId ? String(data.defaultDatasetId) : (state.datasetId || '');\nreturn [{\n  json: {\n    ...state,\n    decision,\n    pollCount,\n    runStatus: status,\n    datasetId,\n    statusMessage: data.statusMessage ? String(data.statusMessage).slice(0, 500) : '',\n    finishedAt: data.finishedAt || null,\n    httpStatus: Number(http.statusCode || 0),\n  },\n}];\n"
+      }
+    },
+    {
+      "id": "bb20-0016-4000-8000-000000000000",
+      "name": "Poll request failed",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2660,
+        420
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nreturn [{ json: { result: 'poll_request_failed', runId: item.runId || null, message: 'The status request failed. Do not start another run until you check this run id in Apify.' } }];\n"
+      }
+    },
+    {
+      "id": "bb20-0017-4000-8000-000000000000",
+      "name": "Run status",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        2940,
+        180
+      ],
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "cond-succeeded",
+                    "leftValue": "={{ $json.decision }}",
+                    "rightValue": "succeeded",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "succeeded"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "cond-failed",
+                    "leftValue": "={{ $json.decision }}",
+                    "rightValue": "failed",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "failed"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "cond-aborted",
+                    "leftValue": "={{ $json.decision }}",
+                    "rightValue": "aborted",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "aborted"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "cond-timed_out",
+                    "leftValue": "={{ $json.decision }}",
+                    "rightValue": "timed_out",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "timed_out"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "cond-keep_polling",
+                    "leftValue": "={{ $json.decision }}",
+                    "rightValue": "keep_polling",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "keep_polling"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "cond-poll_deadline",
+                    "leftValue": "={{ $json.decision }}",
+                    "rightValue": "poll_deadline",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "poll_deadline"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "other"
+        }
+      }
+    },
+    {
+      "id": "bb20-0018-4000-8000-000000000000",
+      "name": "Run failed",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3220,
+        640
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nreturn [{ json: { result: 'failed', runId: item.runId, message: item.statusMessage || 'The actor run failed.', runStatus: item.runStatus } }];\n"
+      }
+    },
+    {
+      "id": "bb20-0019-4000-8000-000000000000",
+      "name": "Run aborted",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3220,
+        820
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nreturn [{ json: { result: 'aborted', runId: item.runId, message: item.statusMessage || 'The actor run was aborted.' } }];\n"
+      }
+    },
+    {
+      "id": "bb20-0020-4000-8000-000000000000",
+      "name": "Run timed out",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3220,
+        1000
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nreturn [{ json: { result: 'timed_out', runId: item.runId, message: item.statusMessage || 'The actor run timed out on Apify.' } }];\n"
+      }
+    },
+    {
+      "id": "bb20-0021-4000-8000-000000000000",
+      "name": "Poll deadline",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3220,
+        1180
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nreturn [{ json: { result: 'poll_deadline', runId: item.runId, message: 'Polling stopped after ' + item.pollCount + ' checks. The actor run was not aborted and may still be charging. Open run ' + item.runId + ' in Apify.' } }];\n"
+      }
+    },
+    {
+      "id": "bb20-0022-4000-8000-000000000000",
+      "name": "Unexpected run status",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3220,
+        1360
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nreturn [{ json: { result: 'unexpected_status', runId: item.runId, runStatus: item.runStatus || null, message: 'The run status was not one of the handled states. The actor was not aborted.' } }];\n"
+      }
+    },
+    {
+      "id": "bb20-0023-4000-8000-000000000000",
+      "name": "Prepare page",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3220,
+        80
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nconst next = { ...item };\ndelete next.pageRows;\ndelete next.dayRows;\nnext.offset = Number.isInteger(next.offset) ? next.offset : 0;\nnext.pagesFetched = next.pagesFetched || 0;\nreturn [{ json: next }];\n"
+      }
+    },
+    {
+      "id": "bb20-0024-4000-8000-000000000000",
+      "name": "Get dataset page",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3480,
+        80
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.baseUrl + '/actor-runs/' + $json.runId + '/dataset/items' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        },
+        "sendQuery": true,
+        "specifyQuery": "keypair",
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "offset",
+              "value": "={{ $json.offset }}"
+            },
+            {
+              "name": "limit",
+              "value": "={{ $json.pageSize }}"
+            },
+            {
+              "name": "format",
+              "value": "json"
+            }
+          ]
+        }
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
+    },
+    {
+      "id": "bb20-0025-4000-8000-000000000000",
+      "name": "Read dataset page",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3740,
+        80
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const http = $input.first().json;\nconst state = $('Prepare page').item.json;\nconst statusCode = Number(http.statusCode || 0);\nlet body = http.body;\nif (typeof body === 'string') {\n  try { body = JSON.parse(body); } catch (error) { body = null; }\n}\nlet rows = [];\nlet decision = 'done';\nlet message = '';\nif (statusCode && (statusCode < 200 || statusCode >= 300)) {\n  decision = 'page_error';\n  message = 'Dataset page request returned HTTP ' + statusCode + '. Rows already saved are kept. This workflow does not start a second actor run.';\n} else if (Array.isArray(body)) {\n  rows = body;\n} else if (body && Array.isArray(body.items)) {\n  rows = body.items;\n} else if (body === null || body === undefined) {\n  decision = 'page_error';\n  message = 'Dataset page response was empty. This workflow does not start a second actor run.';\n} else {\n  decision = 'page_error';\n  message = 'Dataset page response was not a list. This workflow does not start a second actor run.';\n}\nfunction headerValue(name) {\n  const headers = http.headers || {};\n  const found = Object.keys(headers).find((key) => key.toLowerCase() === name);\n  if (!found) return null;\n  const value = headers[found];\n  return Array.isArray(value) ? value[0] : value;\n}\nconst totalRaw = headerValue('x-apify-pagination-total');\nconst total = totalRaw === null || totalRaw === undefined || totalRaw === '' ? null : Number(totalRaw);\nconst pageCount = rows.length;\nconst nextOffset = Number(state.offset || 0) + pageCount;\nconst pagesFetched = Number(state.pagesFetched || 0) + 1;\nlet hasMore = false;\nif (decision !== 'page_error') {\n  if (Number.isFinite(total)) hasMore = nextOffset < total;\n  else hasMore = pageCount === Number(state.pageSize);\n  if (pagesFetched >= Number(state.maxPages)) hasMore = false;\n  if (pageCount === 0) hasMore = false;\n  decision = hasMore ? 'more' : 'done';\n}\nreturn [{\n  json: {\n    ...state,\n    decision,\n    message,\n    offset: Number(state.offset || 0),\n    nextOffset,\n    pageCount,\n    pagesFetched,\n    pageRows: rows,\n    fetched: Number(state.fetched || 0) + (decision === 'page_error' ? 0 : pageCount),\n    partial: pagesFetched >= Number(state.maxPages) && (Number.isFinite(total) ? nextOffset < total : pageCount === Number(state.pageSize)),\n  },\n}];\n"
+      }
+    },
+    {
+      "id": "bb20-0026-4000-8000-000000000000",
+      "name": "Page request failed",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4000,
+        360
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json;\nreturn [{ json: { result: 'page_error', runId: item.runId, message: item.message, fetchedBeforeError: item.fetched || 0 } }];\n"
+      }
+    },
+    {
+      "id": "bb20-0027-4000-8000-000000000000",
+      "name": "Page status",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        4000,
+        80
+      ],
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "cond-more",
+                    "leftValue": "={{ $json.decision }}",
+                    "rightValue": "more",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "more"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "cond-done",
+                    "leftValue": "={{ $json.decision }}",
+                    "rightValue": "done",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "done"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "cond-page_error",
+                    "leftValue": "={{ $json.decision }}",
+                    "rightValue": "page_error",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "page_error"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "other"
+        }
+      }
+    },
+    {
+      "id": "bb20-0028-4000-8000-000000000000",
+      "name": "Advance page",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4280,
+        260
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const state = $input.first().json;\nconst next = { ...state };\ndelete next.pageRows;\nnext.offset = state.nextOffset;\nnext.decision = 'page';\nreturn [{ json: next }];\n"
+      }
+    },
+    {
+      "id": "bb20-0029-4000-8000-000000000000",
+      "name": "Wait for next page",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        4520,
+        260
+      ],
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 1,
+        "unit": "seconds"
+      }
+    },
+    {
+      "id": "bb20-0030-4000-8000-000000000000",
+      "name": "Keep cars",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3900,
+        80
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "function num(value) {\n  if (value === null || value === undefined || value === '') return null;\n  const parsed = Number(value);\n  return Number.isFinite(parsed) ? parsed : null;\n}\nfunction text(value) {\n  if (value === null || value === undefined) return null;\n  return String(value);\n}\nfunction bool(value) {\n  if (value === null || value === undefined || value === '') return null;\n  return Boolean(value);\n}\nfunction carRow(car, state) {\n  const badges = Array.isArray(car.badges) ? car.badges.map((badge) => String(badge)).filter(Boolean).join(', ') : null;\n  return {\n    vehicleId: num(car.vehicleId),\n    url: text(car.url),\n    make: text(car.make),\n    model: text(car.model),\n    year: num(car.year),\n    vehicleType: text(car.vehicleType),\n    rating: num(car.rating),\n    completedTrips: num(car.completedTrips),\n    isAllStarHost: bool(car.isAllStarHost),\n    hostId: num(car.hostId),\n    city: text(car.city),\n    state: text(car.state),\n    country: text(car.country),\n    distanceMiles: num(car.distanceMiles),\n    avgDailyPrice: num(car.avgDailyPrice),\n    currency: text(car.currency),\n    totalTripPrice: num(car.totalTripPrice),\n    badges: badges || null,\n    tripStart: text(car.tripStart),\n    tripEnd: text(car.tripEnd),\n    locationQuery: text(car.locationQuery) || state.location,\n    observedAt: state.finishedAt || new Date().toISOString(),\n    runId: state.runId,\n  };\n}\n\nconst state = { ...$input.first().json };\nconst cars = Array.isArray(state.cars) ? state.cars.slice() : [];\nfor (const car of (state.pageRows || [])) {\n  if (num(car.vehicleId) === null) continue;\n  cars.push(carRow(car, state));\n}\nreturn [{ json: { ...state, cars } }];\n"
+      }
+    },
+    {
+      "id": "bb20-0033-4000-8000-000000000000",
+      "name": "Has cars?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        4540,
+        40
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cond-yes",
+              "leftValue": "={{ $json.fetched > 0 ? 'yes' : 'no' }}",
+              "rightValue": "yes",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "bb20-0034-4000-8000-000000000000",
+      "name": "Get stored prices",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        4800,
+        40
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Validate settings').first().json.dataTableId }}"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {},
+        "returnAll": true,
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "searchStart",
+              "condition": "eq",
+              "keyValue": "={{ $json.startDate }}"
+            },
+            {
+              "keyName": "searchEnd",
+              "condition": "eq",
+              "keyValue": "={{ $json.endDate }}"
+            },
+            {
+              "keyName": "driverAge",
+              "condition": "eq",
+              "keyValue": "={{ $json.driverAge }}"
+            },
+            {
+              "keyName": "locationQuery",
+              "condition": "eq",
+              "keyValue": "={{ $json.location }}"
+            }
+          ]
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "bb20-0035-4000-8000-000000000000",
+      "name": "Compare prices",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5060,
+        40
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "function sameMoney(left, right) {\n  if (left === null && right === null) return true;\n  if (left === null || right === null) return false;\n  return Number(left) === Number(right);\n}\nconst state = $('Has cars?').first().json;\nconst stored = $('Get stored prices').all().map((item) => item.json).filter((row) => row.observationKey);\nconst byKey = {};\nfor (const row of stored) byKey[String(row.observationKey)] = row;\nconst tripHasBaseline = stored.length > 0;\nconst output = [];\nfor (const car of (state.cars || [])) {\n  const currency = car.currency === null || car.currency === undefined ? '' : String(car.currency);\n  const tripStart = car.tripStart || (state.startDate + 'T' + (state.actorInput.startTime || '10:00'));\n  const tripEnd = car.tripEnd || (state.endDate + 'T' + (state.actorInput.endTime || '10:00'));\n  const observationKey = [car.vehicleId, tripStart, tripEnd, state.driverAge, currency, state.location].join('|');\n  const previous = byKey[observationKey];\n  let changeType = 'unchanged';\n  if (!previous) changeType = tripHasBaseline ? 'new_listing' : 'baseline';\n  else if (!sameMoney(previous.avgDailyPrice, car.avgDailyPrice) || !sameMoney(previous.totalTripPrice, car.totalTripPrice)) changeType = 'price_change';\n  output.push({\n    json: {\n      observationKey,\n      vehicleId: car.vehicleId === null ? null : String(car.vehicleId),\n      searchStart: String(state.startDate),\n      searchEnd: String(state.endDate),\n      tripStart: tripStart === null ? null : String(tripStart),\n      tripEnd: tripEnd === null ? null : String(tripEnd),\n      driverAge: String(state.driverAge),\n      locationQuery: String(state.location),\n      currency: currency || null,\n      avgDailyPrice: car.avgDailyPrice,\n      totalTripPrice: car.totalTripPrice,\n      previousAvgDailyPrice: previous ? previous.avgDailyPrice : null,\n      previousTotalTripPrice: previous ? previous.totalTripPrice : null,\n      changeType,\n      observedAt: car.observedAt,\n      make: car.make,\n      model: car.model,\n      year: car.year === null || car.year === undefined ? null : String(car.year),\n      url: car.url,\n      runId: state.runId,\n    },\n  });\n}\nreturn output;\n"
+      }
+    },
+    {
+      "id": "bb20-0036-4000-8000-000000000000",
+      "name": "Upsert observations",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        5320,
+        40
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Validate settings').first().json.dataTableId }}"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {},
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "observationKey",
+              "condition": "eq",
+              "keyValue": "={{ $json.observationKey }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "bb20-0037-4000-8000-000000000000",
+      "name": "Price alerts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5320,
+        260
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const rows = $('Compare prices').all().map((item) => item.json);\nconst alerts = rows.filter((row) => row.changeType === 'price_change' || row.changeType === 'new_listing');\nconst baselines = rows.filter((row) => row.changeType === 'baseline').length;\nif (!alerts.length) {\n  const changeType = baselines ? 'baseline' : 'no_change';\n  const message = baselines\n    ? 'Saved the first price observation for this trip search. No alert rows were created.'\n    : 'No average-daily or trip-total changes for the saved cars.';\n  return [{ json: { changeType, alertCount: 0, baselineCount: baselines, compared: rows.length, message } }];\n}\nreturn alerts.map((row) => ({ json: row }));\n"
+      }
+    },
+    {
+      "id": "bb20-0032-4000-8000-000000000000",
+      "name": "Run summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4800,
+        280
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const state = $input.first().json;\nreturn [{ json: { result: 'empty', message: 'The actor run succeeded and returned no cars. Stored prices were not changed.', runId: state.runId, fetched: 0 } }];\n"
+      }
+    }
+  ],
+  "connections": {
+    "When clicking Execute": {
+      "main": [
+        [
+          {
+            "node": "Trip settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily schedule": {
+      "main": [
+        [
+          {
+            "node": "Trip settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trip settings": {
+      "main": [
+        [
+          {
+            "node": "Validate settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate settings": {
+      "main": [
+        [
+          {
+            "node": "Settings valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings valid?": {
+      "main": [
+        [
+          {
+            "node": "Start actor run",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invalid settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start actor run": {
+      "main": [
+        [
+          {
+            "node": "Read start response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ambiguous start",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read start response": {
+      "main": [
+        [
+          {
+            "node": "Run accepted?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run accepted?": {
+      "main": [
+        [
+          {
+            "node": "Prepare poll",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Start rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare poll": {
+      "main": [
+        [
+          {
+            "node": "Wait for run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for run": {
+      "main": [
+        [
+          {
+            "node": "Get run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get run": {
+      "main": [
+        [
+          {
+            "node": "Read run status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Poll request failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read run status": {
+      "main": [
+        [
+          {
+            "node": "Run status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run status": {
+      "main": [
+        [
+          {
+            "node": "Prepare page",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Run failed",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Run aborted",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Run timed out",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare poll",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Poll deadline",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Unexpected run status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare page": {
+      "main": [
+        [
+          {
+            "node": "Get dataset page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get dataset page": {
+      "main": [
+        [
+          {
+            "node": "Read dataset page",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Page request failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read dataset page": {
+      "main": [
+        [
+          {
+            "node": "Keep cars",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Page status": {
+      "main": [
+        [
+          {
+            "node": "Advance page",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Has cars?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Page request failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Advance page": {
+      "main": [
+        [
+          {
+            "node": "Wait for next page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for next page": {
+      "main": [
+        [
+          {
+            "node": "Prepare page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep cars": {
+      "main": [
+        [
+          {
+            "node": "Page status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has cars?": {
+      "main": [
+        [
+          {
+            "node": "Get stored prices",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Run summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get stored prices": {
+      "main": [
+        [
+          {
+            "node": "Compare prices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compare prices": {
+      "main": [
+        [
+          {
+            "node": "Upsert observations",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Price alerts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

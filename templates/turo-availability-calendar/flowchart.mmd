@@ -1,0 +1,25 @@
+flowchart TD
+  manual[Manual trigger] --> settings[Trip settings]
+  schedule[Daily schedule disabled] --> settings
+  settings --> validate[Validate settings]
+  validate --> valid{Settings valid}
+  valid -->|no| invalid[Invalid settings]
+  valid -->|yes| start[Start actor run]
+  start -->|request error| ambiguous[Ambiguous start]
+  start --> accepted{Run accepted}
+  accepted -->|no| rejected[Start rejected]
+  accepted -->|yes| poll[Poll run]
+  poll --> route{Run status}
+  route -->|still running| poll
+  route -->|failed aborted or timed out| terminal[Terminal summary]
+  route -->|poll limit| deadline[Poll deadline]
+  route -->|succeeded| page[Read dataset page]
+  page --> count[Count calendar days]
+  count --> pageRoute{Page status}
+  pageRoute -->|more rows| advance[Advance and wait]
+  pageRoute -->|more rows| expand[Expand calendar rows]
+  pageRoute -->|done| expand
+  pageRoute -->|done| summary[Run summary]
+  pageRoute -->|page error| pageFailed[Page request failed]
+  advance --> page
+  expand --> insert[Insert calendar rows]

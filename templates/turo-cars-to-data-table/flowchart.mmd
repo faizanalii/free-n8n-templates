@@ -1,0 +1,36 @@
+flowchart TD
+  manual[Manual trigger] --> settings[Trip settings]
+  schedule[Daily schedule disabled] --> settings
+  settings --> validate[Validate settings]
+  validate --> valid{Settings valid}
+  valid -->|no| invalid[Invalid settings]
+  valid -->|yes| start[Start actor run]
+  start -->|request error| ambiguous[Ambiguous start]
+  start --> readStart[Read start response]
+  readStart --> accepted{Run accepted}
+  accepted -->|no| rejected[Start rejected]
+  accepted -->|yes| poll[Prepare poll]
+  poll --> waitRun[Wait 10 seconds]
+  waitRun --> getRun[Get run]
+  getRun -->|request error| pollFailed[Poll request failed]
+  getRun --> status[Read run status]
+  status --> route{Run status}
+  route -->|succeeded| page[Prepare page]
+  route -->|failed| failed[Run failed]
+  route -->|aborted| aborted[Run aborted]
+  route -->|timed out| timedOut[Run timed out]
+  route -->|still running| poll
+  route -->|poll limit| deadline[Poll deadline]
+  route -->|other| unexpected[Unexpected status]
+  page --> getPage[Get dataset page]
+  getPage -->|request error| pageFailed[Page request failed]
+  getPage --> readPage[Read dataset page]
+  readPage --> pageRoute{Page status}
+  pageRoute -->|more rows| advance[Advance page]
+  pageRoute -->|more rows| rows[Expand car rows]
+  pageRoute -->|done| rows
+  pageRoute -->|done| summary[Run summary]
+  pageRoute -->|page error| pageFailed
+  advance --> waitPage[Wait 1 second]
+  waitPage --> page
+  rows --> insert[Insert car rows]

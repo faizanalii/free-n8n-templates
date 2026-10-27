@@ -1,0 +1,14 @@
+{
+  "synthetic": true,
+  "note": "Synthetic example shaped like the actor car record. Not a customer dataset.",
+  "vehicleId": 1001,
+  "make": "Example",
+  "model": "Sample",
+  "year": 2022,
+  "avgDailyPrice": 80,
+  "currency": "USD",
+  "totalTripPrice": null,
+  "tripStart": "2026-12-01T10:00",
+  "tripEnd": "2026-12-05T10:00",
+  "locationQuery": "Los Angeles, CA, USA"
+}

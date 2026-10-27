@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "release_id": "felP4YIbN07tbwFJN-turo-availability-calendar",
+  "slug": "turo-availability-calendar",
+  "title": "Save Turo calendar days for a trip search",
+  "actor": {
+    "id": "felP4YIbN07tbwFJN",
+    "owner_id": "XQ4b5NlpHfNjEMtso",
+    "username": "datascrapers",
+    "name": "turo-car-scraper",
+    "url": "https://apify.com/datascrapers/turo-car-scraper",
+    "public_verified_at": "2026-10-27",
+    "pricing_verified_at": "2026-10-27",
+    "pricing_summary": "Pay per event. On 2026-10-27 the active schedule started 2026-10-15. FREE-plan prices: actor start $0.00005 per GB (minimum one), car $0.0015, availability $0.0009. Details, host, and review events stay off in these templates. A replacement schedule starts 2026-10-31.",
+    "build": "1.0.6"
+  },
+  "workflow": {
+    "file": "workflow.json",
+    "sha256": "85160683c8b6694b802f57191543437d88ec09ba9d8997e0efff3d7b338baeb6",
+    "n8n_version": "2.1.4"
+  },
+  "validation": {
+    "status": "passed",
+    "tested_at": "2026-10-27",
+    "evidence_summary": "Imported from the portable workflow into n8n 2.1.4. A fixture with two cars and three days stored 6 rows, with 1 unavailable day and 5 open days, and null prices. Shared actor branches were executed on the export workflow, including a fresh import.",
+    "cases": [
+      {
+        "name": "invalid-settings",
+        "mode": "fixture",
+        "result": "success, no actor start, invalid location reported"
+      },
+      {
+        "name": "empty-dataset",
+        "mode": "fixture",
+        "result": "success, empty summary, no rows inserted"
+      },
+      {
+        "name": "failed-run",
+        "mode": "fixture",
+        "result": "success branch to Run failed"
+      },
+      {
+        "name": "aborted-run",
+        "mode": "fixture",
+        "result": "success branch to Run aborted"
+      },
+      {
+        "name": "timed-out-run",
+        "mode": "fixture",
+        "result": "success branch to Run timed out"
+      },
+      {
+        "name": "rejected-start",
+        "mode": "fixture",
+        "result": "HTTP 500 without a run id, one start attempt"
+      },
+      {
+        "name": "ambiguous-start",
+        "mode": "fixture",
+        "result": "connection refused on the start node error output, one attempt"
+      },
+      {
+        "name": "poll-loop",
+        "mode": "fixture",
+        "result": "two RUNNING responses then SUCCEEDED"
+      },
+      {
+        "name": "pagination",
+        "mode": "fixture",
+        "result": "12 cars across two pages of 10, 12 rows stored"
+      },
+      {
+        "name": "portable-reimport",
+        "mode": "fixture",
+        "result": "fresh import of workflow.json stored 12 paged rows"
+      },
+      {
+        "name": "live-two-cars",
+        "mode": "live",
+        "result": "San Francisco, maxItems 2, 2 rows, usageTotalUsd 0.00393"
+      },
+      {
+        "name": "calendar-days",
+        "mode": "fixture",
+        "result": "6 day rows, 1 unavailable, 5 open, null price and currency"
+      }
+    ],
+    "portable_reimport_passed": true
+  },
+  "created_at": "2026-10-27",
+  "updated_at": "2026-10-27",
+  "publication": {
+    "github": {
+      "status": "prepared",
+      "repository": "faizanalii/free-n8n-templates",
+      "branch": "main",
+      "commit": "",
+      "url": "https://github.com/faizanalii/free-n8n-templates/tree/main/templates/turo-availability-calendar",
+      "download_url": "https://raw.githubusercontent.com/faizanalii/free-n8n-templates/main/templates/turo-availability-calendar/workflow.json"
+    },
+    "website": {
+      "status": "not_configured",
+      "url": ""
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "synthetic": true,
+  "note": "Synthetic calendar day. Price and currency are null because this actor's calendar does not include a daily rate.",
+  "vehicleId": 501,
+  "date": "2026-12-02",
+  "unavailable": true,
+  "price": null,
+  "currency": null,
+  "customPrice": false,
+  "inTrip": true
+}

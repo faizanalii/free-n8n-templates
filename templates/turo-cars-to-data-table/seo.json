@@ -1,0 +1,22 @@
+{
+  "primary_intent": "Save cars from a dated Turo search into a table",
+  "title": "Save a Turo car search to an n8n data table",
+  "description": "Free n8n workflow that runs the Data Scrapers Turo Car Scraper for one place and trip window and stores one row per car.",
+  "related_phrases": [
+    "Turo car search export",
+    "Turo daily price snapshot",
+    "n8n Apify Turo"
+  ],
+  "evidence": [
+    {
+      "url": "https://apify.com/automation-lab/turo-vehicle-listings-price-scraper",
+      "date": "2026-10-27",
+      "note": "Competing actor describes saving a dated search and keeping trip dates with each observation."
+    },
+    {
+      "url": "https://atoms.is/cases/turo.html",
+      "date": "2026-10-27",
+      "note": "Describes Turo supply and pricing snapshots. Bookings are not public."
+    }
+  ]
+}
